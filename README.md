@@ -1,9 +1,21 @@
-# IMPORTANT: Bug Fixes
+## FACE-API POC
 
-## `navigator.getUserMedia`
+### `How to run`
 
-`navigator.getUserMedia` is now deprecated and is replaced by `navigator.getUserMedia`. To fix this bug replace all versions of `navigator.mediaDevices.getUserMedia` with `navigator.mediaDevices.getUserMedia`
+- Install `Live Server` extension from VS-CODE store.
+- Right-click on index.html file and `serve using live server`
+  **<div style="color: gold">Output is on console only for now.</div>**
 
-## Low-end Devices Bug
+### `Library based issues`
 
-The video eventListener for `play` fires up too early on low-end machines, before the video is fully loaded, which causes errors to pop up from the Face API and terminates the script (tested on Debian [Firefox] and Windows [Chrome, Firefox]). Replaced by `playing` event, which fires up when the media has enough data to start playing.
+- No face detection when its not bright enough.
+- No face detection if it is tilted horizontally beyond ~50 deg.
+
+### `TODOS`
+
+- Add distance based threshold for isolating scenarios.
+
+### `Ref`
+
+[face-api.js]("https://justadudewhohacks.github.io/face-api.js/docs/index.html")
+[Youtube]("https://www.youtube.com/watch?v=CVClHLwv-4I")
