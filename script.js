@@ -1,5 +1,8 @@
 const video = document.getElementById("video");
 
+/**
+ * Wait for promise to resolve for all models
+ */
 Promise.all([
   faceapi.nets.tinyFaceDetector.loadFromUri("/models"),
   faceapi.nets.faceLandmark68Net.loadFromUri("/models"),
@@ -7,6 +10,9 @@ Promise.all([
   // faceapi.nets.faceExpressionNet.loadFromUri("/models")
 ]).then(startVideo);
 
+/**
+ * Capture stream
+ */
 function startVideo() {
   navigator.getUserMedia(
     { video: {} },
@@ -26,34 +32,61 @@ video.addEventListener("play", () => {
       .withFaceLandmarks();
     // .withFaceExpressions();
     if (detections) {
-      console.log(`Person(s): ${detections.length}`);
-      let leftEye = detections[0].landmarks.getLeftEye();
-      let rightEye = detections[0].landmarks.getRightEye();
-      let mouth = detections[0].landmarks.getMouth();
-      let nose = detections[0].landmarks.getNose();
-      let jawLine = detections[0].landmarks.getJawOutline();
-      // console.log("left eye: ", leftEye);
-      // console.log("Right eye: ", rightEye);
-      // console.log("Mouth: ", mouth);
-      // console.log("Nose: ", nose);
-      // console.log("Jawline: ", jawline);
-
-      // ###############  OUTPUT ####################
-      const tilt = calculateTilt(leftEye, rightEye);
-      console.log("Tilt: ", tilt);
-      const mouthSeparation = calculateMouthSeparation(mouth);
-      console.log("Mouth: ", mouthSeparation);
-      const direction = calculateDirection(leftEye, rightEye, nose)
-      console.log("Direction: ", direction);
-      console.log("##################################");
+      if (detections.length === 0) {
+        console.error(
+          `No face detected. Try adjusting light exposure or avoid extreme angles`
+        );
+      } else if (detections.length > 1) {
+        console.warn(
+          `${detections.length} people detected. Disabling calculations`
+        );
+      } else {
+        const { leftEye, rightEye, mouth, nose, jawLine } = extractLandmarks(
+          detections[0]
+        );
+        // Output
+        console.log(`Person(s): ${detections.length}`);
+        renderOutput(leftEye, rightEye, nose, mouth);
+        // Draw detections on canvas
+        if (detections.length === 1) {
+          const resizedDetections = faceapi.resizeResults(
+            detections,
+            displaySize
+          );
+          canvas.getContext("2d").clearRect(0, 0, canvas.width, canvas.height);
+          faceapi.draw.drawDetections(canvas, resizedDetections);
+          faceapi.draw.drawFaceLandmarks(canvas, resizedDetections);
+          // faceapi.draw.drawFaceExpressions(canvas, resizedDetections);
+        }
+      }
+    } else {
+      console.error("Something went wrong. Models did not recognise anything.");
     }
-    const resizedDetections = faceapi.resizeResults(detections, displaySize);
-    canvas.getContext("2d").clearRect(0, 0, canvas.width, canvas.height);
-    faceapi.draw.drawDetections(canvas, resizedDetections);
-    faceapi.draw.drawFaceLandmarks(canvas, resizedDetections);
-    // faceapi.draw.drawFaceExpressions(canvas, resizedDetections);
-  }, 100);
+  }, 250);
 });
+
+/**
+ * Extract face landmarks for using in calculations
+ * @param {*} detection Coordinates object from face-api
+ */
+function extractLandmarks(detection, debug = false) {
+  const leftEye = detection.landmarks.getLeftEye();
+  const rightEye = detection.landmarks.getRightEye();
+  const mouth = detection.landmarks.getMouth();
+  const nose = detection.landmarks.getNose();
+  const jawLine = detection.landmarks.getJawOutline();
+  if (debug) {
+    console.log(leftEye, rightEye, nose, mouth, jawLine);
+  }
+  return { leftEye, rightEye, mouth, nose, jawLine };
+}
+
+function renderOutput(leftEye, rightEye, nose, mouth) {
+  console.log("##################################");
+  console.log("Tilt: ", calculateTilt(leftEye, rightEye));
+  console.log("Mouth: ", calculateMouthSeparation(mouth));
+  console.log("Direction: ", calculateDirection(leftEye, rightEye, nose));
+}
 
 /**
  * Calculating direction of head using eye corners and nose tip coordinates
@@ -62,12 +95,12 @@ function calculateDirection(leftEye, rightEye, nose) {
   const leftEyeRightMostPoint = leftEye[3];
   const rightEyeLeftMostPoint = rightEye[0];
   const noseTopPoint = nose[0];
-  const leftGap =  noseTopPoint.x - leftEyeRightMostPoint.x
-  const rightGap = rightEyeLeftMostPoint.x - noseTopPoint.x
-  const gapDelta = leftGap - rightGap
-  const absGap = Math.abs(gapDelta)
-  const dir = gapDelta < 0 ? 'Right' : 'Left'
-  return absGap < 5 ? 'Center' : absGap < 15 ? `Slightly ${dir}` : `To ${dir}`
+  const leftGap = noseTopPoint.x - leftEyeRightMostPoint.x;
+  const rightGap = rightEyeLeftMostPoint.x - noseTopPoint.x;
+  const gapDelta = leftGap - rightGap;
+  const absGap = Math.abs(gapDelta);
+  const dir = gapDelta < 0 ? "Right" : "Left";
+  return absGap < 5 ? "Center" : absGap < 15 ? `Slightly ${dir}` : `To ${dir}`;
 }
 
 /**
