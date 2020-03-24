@@ -1,0 +1,29 @@
+body {
+  display: flex;
+  height: "100vh";
+  flex-direction: row;
+  padding: 10px;
+}
+
+canvas {
+  position: absolute;
+}
+
+.divisions {
+  flex: 1;
+  padding: 10px;
+}
+
+table {
+  border: black solid 2px;
+}
+
+td {
+  border: black solid 1px;
+  width: 50%;
+  padding: 5px;
+}
+
+.warning {
+  color: crimson;
+}
