@@ -1,4 +1,12 @@
 const video = document.getElementById("video");
+var node_tilt = document.getElementById("tilt");
+var node_dir = document.getElementById("direction");
+var node_mouth = document.getElementById("mouth");
+var node_error = document.getElementById("error");
+var node_faces = document.getElementById("faces");
+var node_title = document.getElementById("title");
+
+const REFRESH_INTERVAL = 500;
 
 /**
  * Wait for promise to resolve for all models
@@ -17,7 +25,10 @@ function startVideo() {
   navigator.getUserMedia(
     { video: {} },
     stream => (video.srcObject = stream),
-    err => console.error("Video stream Error: ", err)
+    err => {
+      node_error.innerHTML = "Video stream error. Try refreshing page";
+      console.error("Video stream Error: ", err);
+    }
   );
 }
 
@@ -31,38 +42,40 @@ video.addEventListener("play", () => {
       .detectAllFaces(video, new faceapi.TinyFaceDetectorOptions())
       .withFaceLandmarks();
     // .withFaceExpressions();
+    node_title.innerHTML = `Model output (refreshes every ${REFRESH_INTERVAL}ms)`;
     if (detections) {
       if (detections.length === 0) {
-        console.error(
-          `No face detected. Try adjusting light exposure or avoid extreme angles`
-        );
+        node_faces.innerHTML = 0;
+        node_error.innerHTML =
+          "No face detected. Try adjusting light exposure or posture.";
       } else if (detections.length > 1) {
-        console.warn(
-          `${detections.length} people detected. Disabling calculations`
-        );
+        node_faces.innerHTML = detections.length;
+        node_error.innerHTML = `${detections.length} people detected. Disabling calculations`;
       } else {
+        node_error.innerHTML = "NA";
+        node_faces.innerHTML = 1;
         const { leftEye, rightEye, mouth, nose, jawLine } = extractLandmarks(
           detections[0]
         );
         // Output
-        console.log(`Person(s): ${detections.length}`);
         renderOutput(leftEye, rightEye, nose, mouth);
         // Draw detections on canvas
-        if (detections.length === 1) {
-          const resizedDetections = faceapi.resizeResults(
-            detections,
-            displaySize
-          );
-          canvas.getContext("2d").clearRect(0, 0, canvas.width, canvas.height);
-          faceapi.draw.drawDetections(canvas, resizedDetections);
-          faceapi.draw.drawFaceLandmarks(canvas, resizedDetections);
-          // faceapi.draw.drawFaceExpressions(canvas, resizedDetections);
-        }
+        // if (detections.length === 1) {
+        //   const resizedDetections = faceapi.resizeResults(
+        //     detections,
+        //     displaySize
+        //   );
+        //   canvas.getContext("2d").clearRect(0, 0, canvas.width, canvas.height);
+        //   faceapi.draw.drawDetections(canvas, resizedDetections);
+        //   faceapi.draw.drawFaceLandmarks(canvas, resizedDetections);
+        //   // faceapi.draw.drawFaceExpressions(canvas, resizedDetections);
+        // }
       }
     } else {
-      console.error("Something went wrong. Models did not recognise anything.");
+      node_error.innerHTML =
+        "Something went wrong. Models did not recognise anything.";
     }
-  }, 250);
+  }, REFRESH_INTERVAL);
 });
 
 /**
@@ -82,10 +95,9 @@ function extractLandmarks(detection, debug = false) {
 }
 
 function renderOutput(leftEye, rightEye, nose, mouth) {
-  console.log("##################################");
-  console.log("Tilt: ", calculateTilt(leftEye, rightEye));
-  console.log("Mouth: ", calculateMouthSeparation(mouth));
-  console.log("Direction: ", calculateDirection(leftEye, rightEye, nose));
+  node_tilt.innerHTML = calculateTilt(leftEye, rightEye);
+  node_dir.innerHTML = calculateDirection(leftEye, rightEye, nose);
+  node_mouth.innerHTML = calculateMouthSeparation(mouth);
 }
 
 /**
@@ -114,9 +126,6 @@ function calculateMouthSeparation(mouth) {
   const topLipCenter = mouth[14];
   const bottomLipCenter = mouth[18];
   const separation = bottomLipCenter.y - topLipCenter.y;
-  if (separation > 80) {
-    console.error("Yawning or Screaming for life");
-  }
   return separation < 5 ? "Closed" : separation < 15 ? "Slightly open" : "Open";
 }
 
@@ -140,6 +149,6 @@ function calculateTilt(leftEye, rightEye) {
   const rightEyeRightMostPoint = rightEye[4];
   const heightDiff = leftEyeLeftMostPoint.y - rightEyeRightMostPoint.y;
   const prob = Math.abs(heightDiff) <= 10 ? "Slightly" : "To";
-  const dir = heightDiff > 0 ? "right" : "left";
+  const dir = heightDiff > 0 ? "Right" : "Left";
   return `${prob} ${dir}`;
 }

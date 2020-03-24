@@ -11,41 +11,44 @@
   <body>
     <div class="divisions">
       <h2>Face-api POC for tracking head movement</h2>
-      <video id="video" width="720" height="560" autoplay muted></video>
+      <video id="video" autoplay muted></video>
     </div>
     <div class="divisions">
       <div>
-        <h2>Model output</h2>
+        <h2 id="title">Model output (Loading)</h2>
       </div>
 
       <div>
         <table width="100%">
           <tr>
-            <td>Tilt</td>
-            <td id="tilt">NA</td>
+            <td><b>Faces detected</b></td>
+            <td id="faces" class="blue">NA</td>
           </tr>
           <tr>
-            <td>Direction</td>
-            <td id="direction">NA</td>
+            <td><b>Tilt</b></td>
+            <td id="tilt" class="blue">NA</td>
           </tr>
           <tr>
-            <td>Mouth</td>
-            <td id="mouth">NA</td>
+            <td><b>Direction</b></td>
+            <td id="direction" class="blue">NA</td>
           </tr>
           <tr>
-            <td>Talking probabilty</td>
+            <td><b>Mouth</b></td>
+            <td id="mouth" class="blue">NA</td>
+          </tr>
+          <tr>
+            <td><b>Depth multiplier</b></td>
             <td id="talk">DISABLED</td>
           </tr>
           <tr>
-            <td>Probable Expression</td>
+            <td><b>Probable Expression</b></td>
             <td id="expression">DISABLED</td>
           </tr>
         </table>
 
-        <hr />
         <div>
           <h3>Error</h3>
-          <p id="error" class="warning">error</p>
+          <p id="error" class="warning">NA</p>
         </div>
         <hr />
         <div>
@@ -55,6 +58,11 @@
             models like <i>Tiny face detector</i> to track face landmarks. The
             library provides a huge array of co-ordinates that can be used to do
             custom calculations as per requirement.
+          </p>
+          <p>
+            This particular model generates landmarks on a 2d plane. However,
+            combining data from tilt and direction, 3d orientation can be
+            computed to some extent
           </p>
         </div>
         <hr />

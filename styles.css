@@ -5,6 +5,10 @@ body {
   padding: 10px;
 }
 
+video {
+  border: black solid 2px;
+}
+
 canvas {
   position: absolute;
 }
@@ -22,6 +26,10 @@ td {
   border: black solid 1px;
   width: 50%;
   padding: 5px;
+}
+
+.blue {
+  color: slateblue;
 }
 
 .warning {
