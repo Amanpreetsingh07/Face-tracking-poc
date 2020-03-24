@@ -11,7 +11,7 @@ function startVideo() {
   navigator.getUserMedia(
     { video: {} },
     stream => (video.srcObject = stream),
-    err => console.error(err)
+    err => console.error("Video stream Error: ", err)
   );
 }
 
@@ -32,7 +32,7 @@ video.addEventListener("play", () => {
       let mouth = detections[0].landmarks.getMouth();
       let nose = detections[0].landmarks.getNose();
       let jawLine = detections[0].landmarks.getJawOutline();
-      // console.log("left eye: ", lefteye);
+      // console.log("left eye: ", leftEye);
       // console.log("Right eye: ", rightEye);
       // console.log("Mouth: ", mouth);
       // console.log("Nose: ", nose);
@@ -43,6 +43,8 @@ video.addEventListener("play", () => {
       console.log("Tilt: ", tilt);
       const mouthSeparation = calculateMouthSeparation(mouth);
       console.log("Mouth: ", mouthSeparation);
+      const direction = calculateDirection(leftEye, rightEye, nose)
+      console.log("Direction: ", direction);
       console.log("##################################");
     }
     const resizedDetections = faceapi.resizeResults(detections, displaySize);
@@ -50,13 +52,22 @@ video.addEventListener("play", () => {
     faceapi.draw.drawDetections(canvas, resizedDetections);
     faceapi.draw.drawFaceLandmarks(canvas, resizedDetections);
     // faceapi.draw.drawFaceExpressions(canvas, resizedDetections);
-  }, 1000);
+  }, 100);
 });
 
+/**
+ * Calculating direction of head using eye corners and nose tip coordinates
+ */
 function calculateDirection(leftEye, rightEye, nose) {
-  const leftEyeRightMostPoint = leftEye[4];
+  const leftEyeRightMostPoint = leftEye[3];
   const rightEyeLeftMostPoint = rightEye[0];
   const noseTopPoint = nose[0];
+  const leftGap =  noseTopPoint.x - leftEyeRightMostPoint.x
+  const rightGap = rightEyeLeftMostPoint.x - noseTopPoint.x
+  const gapDelta = leftGap - rightGap
+  const absGap = Math.abs(gapDelta)
+  const dir = gapDelta < 0 ? 'Right' : 'Left'
+  return absGap < 5 ? 'Center' : absGap < 15 ? `Slightly ${dir}` : `To ${dir}`
 }
 
 /**
