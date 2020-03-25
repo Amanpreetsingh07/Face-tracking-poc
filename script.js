@@ -12,9 +12,9 @@ const REFRESH_INTERVAL = 500;
  * Wait for promise to resolve for all models
  */
 Promise.all([
-  faceapi.nets.tinyFaceDetector.loadFromUri("/models"),
-  faceapi.nets.faceLandmark68Net.loadFromUri("/models"),
-  faceapi.nets.faceRecognitionNet.loadFromUri("/models")
+  faceapi.nets.tinyFaceDetector.loadFromDisk("./models"),
+  faceapi.nets.faceLandmark68Net.loadFromDisk("./models"),
+  faceapi.nets.faceRecognitionNet.loadFromDisk("./models")
   // faceapi.nets.faceExpressionNet.loadFromUri("/models")
 ]).then(startVideo);
 
